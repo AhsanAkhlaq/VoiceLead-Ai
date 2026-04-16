@@ -51,7 +51,7 @@ class SupabaseDB(DatabaseProvider):
             Lead ID (UUID)
         """
         payload = {
-            "phone": lead_data.get("phone"),
+            "phone": lead_data.get("phone") or "pending",  # Use placeholder if no phone yet
             "property_type": lead_data.get("property_type"),
             "city": lead_data.get("city"),
             "area_society": lead_data.get("area_society"),
@@ -75,27 +75,63 @@ class SupabaseDB(DatabaseProvider):
 
         Args:
             lead_id: Lead ID
-            updates: Dictionary of fields to update
+            updates: Dictionary of fields to update (can include extracted_data + analytics)
 
         Returns:
             True if successful
         """
         payload = {}
 
-        # Map engine fields to database fields
+        # Map ALL extracted fields from engine
+        direct_fields = [
+            "name",
+            "phone",
+            "property_type",
+            "city",
+            "area_society",
+            "size_requirement",
+            "budget_range",
+            "timeline",
+            "purpose",
+            "additional_requirements"
+        ]
+        
+        for field in direct_fields:
+            if field in updates and updates[field] is not None:
+                payload[field] = updates[field]
+
+        # Map analytics fields
+        analytics_fields = [
+            "lead_score",
+            "score_confidence",
+            "sentiment",
+            "summary",
+            "transcript",
+            "call_duration_seconds",
+            "message_count"
+        ]
+        
+        for field in analytics_fields:
+            if field in updates and updates[field] is not None:
+                payload[field] = updates[field]
+
+        # Legacy support: handle old-style lead_profile updates
         if "lead_profile" in updates:
             profile = updates["lead_profile"]
-            payload["budget_range"] = profile.get("budget")
-            payload["property_type"] = profile.get("property_type")
-            payload["area_society"] = profile.get("location")
-            payload["timeline"] = profile.get("timeline")
-            payload["lead_score"] = profile.get("score", "unknown").lower()
+            if not payload.get("budget_range"):
+                payload["budget_range"] = profile.get("budget")
+            if not payload.get("property_type"):
+                payload["property_type"] = profile.get("property_type")
+            if not payload.get("area_society"):
+                payload["area_society"] = profile.get("location")
+            if not payload.get("timeline"):
+                payload["timeline"] = profile.get("timeline")
+            if not payload.get("lead_score"):
+                payload["lead_score"] = profile.get("score", "unknown").lower()
 
-        if "lead_score" in updates:
-            payload["lead_score"] = updates["lead_score"].lower()
-
-        if "summary" in updates:
-            payload["summary"] = updates["summary"]
+        # Ensure lead_score is lowercase if present
+        if "lead_score" in payload and payload["lead_score"]:
+            payload["lead_score"] = payload["lead_score"].lower()
 
         if payload:
             self.client.table("leads").update(payload).eq("id", lead_id).execute()

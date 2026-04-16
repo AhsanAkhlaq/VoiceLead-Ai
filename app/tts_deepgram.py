@@ -63,6 +63,7 @@ class DeepgramTTS(TTSProvider):
             )
 
             if response.status_code != 200:
+                await response.aread()
                 raise Exception(
                     f"Deepgram API error: {response.status_code} - {response.text}"
                 )
