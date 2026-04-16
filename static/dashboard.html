@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoiceLead AI - Agent Monitoring Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            color: #333;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #22c55e;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            color: #999;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .stat-card .value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .stat-card.hot .value {
+            color: #ef4444;
+        }
+
+        .stat-card.warm .value {
+            color: #f59e0b;
+        }
+
+        .stat-card.cold .value {
+            color: #3b82f6;
+        }
+
+        .leads-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        .leads-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .leads-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .leads-table thead {
+            background: #f9fafb;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .leads-table th {
+            text-align: left;
+            padding: 12px;
+            color: #6b7280;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .leads-table td {
+            padding: 15px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            color: #374151;
+        }
+
+        .leads-table tr:hover {
+            background: #f9fafb;
+            cursor: pointer;
+        }
+
+        .lead-score {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .lead-score.hot {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .lead-score.warm {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .lead-score.cold {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .lead-score.unknown {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .modal-header h2 {
+            color: #333;
+            font-size: 22px;
+        }
+
+        .close-btn {
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            background: none;
+            border: none;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .transcript-container {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .transcript-message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .transcript-message.user {
+            background: #dbeafe;
+            color: #0c4a6e;
+            text-align: right;
+        }
+
+        .transcript-message.agent {
+            background: #e0e7ff;
+            color: #312e81;
+            text-align: left;
+        }
+
+        .lead-details {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: #6b7280;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .detail-value {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 VoiceLead AI - Control Room</h1>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span>Live Monitoring Active</span>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <div class="stat-card hot">
+                <h3>🔥 Hot Leads</h3>
+                <div class="value" id="hot-count">0</div>
+            </div>
+            <div class="stat-card warm">
+                <h3>🌤️ Warm Leads</h3>
+                <div class="value" id="warm-count">0</div>
+            </div>
+            <div class="stat-card cold">
+                <h3>❄️ Cold Leads</h3>
+                <div class="value" id="cold-count">0</div>
+            </div>
+        </div>
+
+        <div class="leads-section">
+            <h2>📞 Live Leads</h2>
+            <table class="leads-table">
+                <thead>
+                    <tr>
+                        <th>Phone</th>
+                        <th>Budget</th>
+                        <th>Property Type</th>
+                        <th>Location</th>
+                        <th>Score</th>
+                        <th>Timeline</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="leads-tbody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: #999;">
+                            No leads yet. Waiting for incoming calls...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Lead Detail Modal -->
+    <div id="leadModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Lead Details</h2>
+                <button class="close-btn" onclick="closeLeadModal()">&times;</button>
+            </div>
+
+            <div class="lead-details">
+                <div class="detail-row">
+                    <span class="detail-label">Phone Number</span>
+                    <span class="detail-value" id="modal-phone">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Budget</span>
+                    <span class="detail-value" id="modal-budget">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Property Type</span>
+                    <span class="detail-value" id="modal-property">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Location</span>
+                    <span class="detail-value" id="modal-location">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Timeline</span>
+                    <span class="detail-value" id="modal-timeline">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Score</span>
+                    <span class="detail-value" id="modal-score">-</span>
+                </div>
+            </div>
+
+            <h3 style="color: #333; margin-bottom: 15px;">📝 Conversation Transcript</h3>
+            <div class="transcript-container" id="transcript-container">
+                <div class="empty-state">No transcript available yet</div>
+            </div>
+
+            <button class="action-btn" style="width: 100%;" onclick="takeoverLead()">
+                📞 Take Over Call
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize dashboard
+        let leadsData = [];
+
+        // Global WebSocket or polling mechanism would go here
+        // For now, we have placeholders for the API integration
+
+        async function fetchLeads() {
+            try {
+                const response = await fetch('/api/leads');
+                leadsData = await response.json();
+                renderLeads();
+                updateStats();
+            } catch (error) {
+                console.error('Failed to fetch leads:', error);
+            }
+        }
+
+        function renderLeads() {
+            const tbody = document.getElementById('leads-tbody');
+
+            if (leadsData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: #999;">
+                            No leads yet. Waiting for incoming calls...
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = leadsData.map(lead => `
+                <tr onclick="openLeadModal('${lead.id}')">
+                    <td>${lead.phone || 'N/A'}</td>
+                    <td>${lead.budget || 'Unknown'}</td>
+                    <td>${lead.property_type || 'N/A'}</td>
+                    <td>${lead.location || 'Unknown'}</td>
+                    <td>
+                        <span class="lead-score ${(lead.score || 'unknown').toLowerCase()}">
+                            ${lead.score || 'Unknown'}
+                        </span>
+                    </td>
+                    <td>${lead.timeline || 'N/A'}</td>
+                    <td>
+                        <button class="action-btn" onclick="event.stopPropagation(); viewDetails('${lead.id}')">
+                            View
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateStats() {
+            const stats = {
+                hot: leadsData.filter(l => l.score === 'HOT').length,
+                warm: leadsData.filter(l => l.score === 'WARM').length,
+                cold: leadsData.filter(l => l.score === 'COLD').length
+            };
+
+            document.getElementById('hot-count').textContent = stats.hot;
+            document.getElementById('warm-count').textContent = stats.warm;
+            document.getElementById('cold-count').textContent = stats.cold;
+        }
+
+        function openLeadModal(leadId) {
+            const lead = leadsData.find(l => l.id === leadId);
+            if (!lead) return;
+
+            document.getElementById('modal-phone').textContent = lead.phone || '-';
+            document.getElementById('modal-budget').textContent = lead.budget || '-';
+            document.getElementById('modal-property').textContent = lead.property_type || '-';
+            document.getElementById('modal-location').textContent = lead.location || '-';
+            document.getElementById('modal-timeline').textContent = lead.timeline || '-';
+            document.getElementById('modal-score').textContent = lead.score || '-';
+
+            // Load transcript
+            loadTranscript(leadId);
+
+            document.getElementById('leadModal').style.display = 'block';
+        }
+
+        function closeLeadModal() {
+            document.getElementById('leadModal').style.display = 'none';
+        }
+
+        async function loadTranscript(leadId) {
+            try {
+                const response = await fetch(`/api/leads/${leadId}/transcript`);
+                const messages = await response.json();
+                const container = document.getElementById('transcript-container');
+
+                if (messages.length === 0) {
+                    container.innerHTML = '<div class="empty-state">No transcript available yet</div>';
+                } else {
+                    container.innerHTML = messages.map(msg => `
+                        <div class="transcript-message ${msg.role}">
+                            ${msg.message}
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Failed to load transcript:', error);
+                document.getElementById('transcript-container').innerHTML = 
+                    '<div class="empty-state">Failed to load transcript</div>';
+            }
+        }
+
+        function takeoverLead() {
+            alert('Agent takeover feature coming soon. The sales agent can now speak with the client.');
+        }
+
+        function viewDetails(leadId) {
+            openLeadModal(leadId);
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('leadModal');
+            if (event.target === modal) {
+                closeLeadModal();
+            }
+        };
+
+        // Poll for new leads every 3 seconds
+        setInterval(fetchLeads, 3000);
+
+        // Initial load
+        fetchLeads();
+    </script>
+</body>
+</html>

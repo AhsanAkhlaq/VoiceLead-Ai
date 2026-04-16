@@ -1,0 +1,15 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+.env
+__pycache__/
+app/__pycache__
+test_call.py
+PHASES_2_3_COMPLETE.md
