@@ -451,15 +451,23 @@
                 return;
             }
 
-            tbody.innerHTML = leadsData.map(lead => `
+            tbody.innerHTML = leadsData.map(lead => {
+                let scoreCat = "cold";
+                const score = lead.score_confidence || 0;
+                if (score >= 80) scoreCat = "hot";
+                else if (score >= 50) scoreCat = "warm";
+                
+                const location = (lead.city && lead.area_society) ? `${lead.city}, ${lead.area_society}` : (lead.city || lead.area_society || 'Unknown');
+
+                return `
                 <tr onclick="openLeadModal('${lead.id}')">
                     <td>${lead.phone || 'N/A'}</td>
-                    <td>${lead.budget || 'Unknown'}</td>
+                    <td>${lead.budget_range || 'Unknown'}</td>
                     <td>${lead.property_type || 'N/A'}</td>
-                    <td>${lead.location || 'Unknown'}</td>
+                    <td>${location}</td>
                     <td>
-                        <span class="lead-score ${(lead.score || 'unknown').toLowerCase()}">
-                            ${lead.score || 'Unknown'}
+                        <span class="lead-score ${scoreCat}">
+                            ${score}
                         </span>
                     </td>
                     <td>${lead.timeline || 'N/A'}</td>
@@ -469,14 +477,14 @@
                         </button>
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
         }
 
         function updateStats() {
             const stats = {
-                hot: leadsData.filter(l => l.score === 'HOT').length,
-                warm: leadsData.filter(l => l.score === 'WARM').length,
-                cold: leadsData.filter(l => l.score === 'COLD').length
+                hot: leadsData.filter(l => (l.score_confidence || 0) >= 80).length,
+                warm: leadsData.filter(l => (l.score_confidence || 0) >= 50 && (l.score_confidence || 0) < 80).length,
+                cold: leadsData.filter(l => (l.score_confidence || 0) > 0 && (l.score_confidence || 0) < 50).length
             };
 
             document.getElementById('hot-count').textContent = stats.hot;
@@ -488,12 +496,14 @@
             const lead = leadsData.find(l => l.id === leadId);
             if (!lead) return;
 
+            const location = (lead.city && lead.area_society) ? `${lead.city}, ${lead.area_society}` : (lead.city || lead.area_society || 'Unknown');
+
             document.getElementById('modal-phone').textContent = lead.phone || '-';
-            document.getElementById('modal-budget').textContent = lead.budget || '-';
+            document.getElementById('modal-budget').textContent = lead.budget_range || '-';
             document.getElementById('modal-property').textContent = lead.property_type || '-';
-            document.getElementById('modal-location').textContent = lead.location || '-';
+            document.getElementById('modal-location').textContent = location || '-';
             document.getElementById('modal-timeline').textContent = lead.timeline || '-';
-            document.getElementById('modal-score').textContent = lead.score || '-';
+            document.getElementById('modal-score').textContent = lead.score_confidence || '-';
 
             // Load transcript
             loadTranscript(leadId);
@@ -515,8 +525,8 @@
                     container.innerHTML = '<div class="empty-state">No transcript available yet</div>';
                 } else {
                     container.innerHTML = messages.map(msg => `
-                        <div class="transcript-message ${msg.role}">
-                            ${msg.message}
+                        <div class="transcript-message ${msg.role === 'assistant' ? 'agent' : 'user'}">
+                            ${msg.content}
                         </div>
                     `).join('');
                 }

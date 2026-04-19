@@ -13,6 +13,7 @@ dependencies = [
     "python-dotenv>=1.2.2",
     "python-multipart>=0.0.26",
     "supabase>=2.28.3",
+    "twilio>=9.10.5",
     "websockets<16",
 ]
 

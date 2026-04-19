@@ -12,21 +12,4 @@ wheels/
 __pycache__/
 app/__pycache__
 
-# Test outputs
-test_call.py
-test_output.mp3
-PHASES_2_3_COMPLETE.md
-PHASE_4_ARCHITECTURE.md
-PHASE_4_COMPLETE.md
-PHASE_4_GUIDE.md
-.gitignore
-.gitignore
-PHASE_4_PLAN.md
-PROMPT_EXTRACTION_GUIDE.md
-QUICK_HELP.md
-QUICK_REFERENCE.md
-SUPABASE_ACCESS_FIX.md
-FIXES_APPLIED.md
-COMPLETE_SUMMARY.md
-BEFORE_AFTER_EXAMPLES.md
-DEPLOYMENT_CHECKLIST.md
+
