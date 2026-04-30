@@ -5,7 +5,7 @@
 ---
 
 <!-- 📸 IMAGE SUGGESTION #1: Place your system architecture diagram here (the 3-tier diagram showing User Interface → FastAPI Server → External Services). Export it as a PNG from the interactive diagram above. -->
-![Uploading voicelead_system_architecture.svg…]()
+<img width="1440" height="1568" alt="image" src="https://github.com/user-attachments/assets/064d5288-491a-4c1d-b5a5-6f8fa0f535c5" />
 
 ---
 
@@ -39,7 +39,7 @@ VoiceLead AI answers inbound real estate calls, holds a natural conversation in 
 ## Architecture
 
 <!-- 📸 IMAGE SUGGESTION #2: Place the conversation flow diagram here (the 7-step sequential flowchart: Connection → Listen Loop → Process → Generate → Stream Audio → End or Continue → Post-call Analysis). -->
-![Conversation Flow](./images/flow.png)
+<img width="1440" height="1520" alt="image" src="https://github.com/user-attachments/assets/9efff1a6-e9d8-4214-be2e-60d853673411" />
 
 ### Real-Time Conversation Flow
 
@@ -56,7 +56,7 @@ Every call moves through 7 stages:
 ### Two-Brain Architecture
 
 <!-- 📸 IMAGE SUGGESTION #3: Place the two-brain architecture diagram here (Brain 1 left / Brain 2 right, both fed by Deepgram STT, outputting to TTS and Supabase respectively). -->
-![Two-Brain Architecture](./images/two-brain.png)
+<img width="1440" height="920" alt="image" src="https://github.com/user-attachments/assets/c6f89ecd-4e06-4f28-9456-8a99a65f2791" />
 
 **Brain 1 — Fast Conversationalist**
 
