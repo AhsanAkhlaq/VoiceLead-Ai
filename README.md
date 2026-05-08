@@ -1,6 +1,6 @@
 # VoiceLead AI 🎙️
 
-> Real-time voice-based lead qualification for Pakistani real estate — powered by Deepgram, Groq, and Supabase.
+> Real-time voice-based lead qualification for Pakistani real estate — powered by Deepgram, Groq Supabase, and ngrok.
 
 ---
 
@@ -33,7 +33,7 @@ VoiceLead AI answers inbound real estate calls, holds a natural conversation in 
 | LLM | Groq — LLaMA 3.3 70B | 500+ tokens/min, <1 s response |
 | Database | Supabase (PostgreSQL + JSONB) | Real-time updates, easy scaling |
 | Phone | Twilio | Programmable phone calls |
-
+| Tunneling | ngrok | Expose local server to Twilio webhooks |
 ---
 
 ## Architecture
@@ -104,6 +104,7 @@ voicelead-ai/
 - A Deepgram account (API key)
 - A Groq account (API key)
 - A Supabase project with the `leads` table (schema below)
+- [ngrok](https://ngrok.com) (to expose local server for Twilio webhooks)
 - (Optional) A Twilio account with a US phone number
 
 ### Install
@@ -162,28 +163,41 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 Open `http://localhost:8000` for the browser call UI, or `http://localhost:8000/dashboard` for the leads dashboard.
 
 ---
-
-## Twilio Setup
-
-1. Buy a US Twilio number
-2. Set your webhook to `https://your-domain/api/twilio/twiml`
-3. Twilio calls your number → TwiML redirects to `/ws/twilio` WebSocket
-4. For local testing: use the reverse-call hack — your Twilio number calls your phone
-
-> **Note on free tier**: Twilio charges $1.50–$2 per minute on free tier and does not provide Pakistani local numbers. The browser-based UI is recommended for development.
-
+### Expose with ngrok (required for Twilio)
+ 
+Twilio needs a public HTTPS URL to reach your local server. ngrok creates a secure tunnel in one command:
+ 
+```bash
+ngrok http 8000
+```
+ 
+ngrok gives you a public URL like `https://abc123.ngrok-free.app`. Use this as your Twilio webhook base URL. Every time you restart ngrok, the URL changes — update your Twilio webhook accordingly, or use a paid ngrok plan for a fixed domain.
+ 
 ---
-
+ 
+## Twilio Setup
+ 
+1. Run `ngrok http 8000` to get your public HTTPS URL
+2. Buy a US Twilio number
+3. Set your webhook to `https://<your-ngrok-url>/api/twilio/twiml`
+4. Twilio calls your number → TwiML redirects to `/ws/twilio` WebSocket
+5. For local testing: use the reverse-call hack — your Twilio number calls your phone
+> **Note on free tier**: Twilio charges $1.50–$2 per minute on free tier and does not provide Pakistani local numbers. The browser-based UI is recommended for development.
+ 
+---
+ 
 ## Key Design Decisions
-
+ 
 **Why Deepgram over ElevenLabs?** ElevenLabs encountered IP restrictions during development. Deepgram provides both STT and TTS with lower latency for streaming use cases.
-
+ 
 **Why Groq over OpenAI?** Groq runs LLaMA 3.3 70B at 500+ tokens per minute — essential for <1 second real-time responses.
-
+ 
 **Why WebSocket, not REST?** Persistent connections enable full-duplex audio streaming and interruption handling. REST cannot stream bidirectionally.
-
+ 
 **Why two separate brains?** Brain 1 must be snappy (short responses, high temperature). Brain 2 must be precise (JSON extraction, low temperature). Conflicting requirements → separate prompts and calls.
-
+ 
+**Why ngrok?** Twilio webhooks require a public HTTPS URL. ngrok creates a secure tunnel from `localhost:8000` to the internet in a single command — no server deployment needed during development.
+ 
 ---
 
 ## Dashboard
