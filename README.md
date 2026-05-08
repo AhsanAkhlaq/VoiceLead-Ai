@@ -204,7 +204,8 @@ ngrok gives you a public URL like `https://abc123.ngrok-free.app`. Use this as y
 
 The dashboard at `/dashboard` shows all leads sorted by `score_confidence` (hottest first). Click any lead to view the full conversation transcript.
 
-<!-- 📸 IMAGE SUGGESTION #4 (optional): Screenshot of the dashboard.html showing the leads table with score badges. -->
+<img width="1890" height="891" alt="image" src="https://github.com/user-attachments/assets/d2517f7e-124e-4bd8-ab6d-ef58a5a6dd81" />
+<img width="876" height="747" alt="image" src="https://github.com/user-attachments/assets/b42f6e73-4a07-4310-873b-a0810e0890dc" />
 
 ---
 
